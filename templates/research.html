@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow"><span class="status-dot"></span> SYSTEMATIC STRATEGIES <span class="eyebrow-divider">/</span> BACKTEST</div>
+        <h1>Strategy research lab</h1>
+        <p class="page-subtitle">Test a simple trend-following rule against your own daily price history.</p>
+    </div>
+    <a href="{{ url_for('research_price_template') }}" class="btn btn-quiet"><i class="fas fa-download"></i> Price CSV template</a>
+</div>
+
+<section class="panel research-config">
+    <div class="panel-heading"><div><div class="eyebrow">EXPERIMENT SETUP</div><h2>Moving-average crossover</h2></div><span class="panel-badge">LONG ONLY · NO LEVERAGE</span></div>
+    <form method="post" enctype="multipart/form-data" class="research-form">
+        <div class="research-upload">
+            <label for="priceCsv" class="form-label">Historical prices <span class="required-mark">*</span></label>
+            <input id="priceCsv" class="form-control" type="file" name="prices" accept=".csv,text/csv" required>
+            <div class="form-text">CSV columns: <code>date</code>, <code>close</code>. Daily observations, 3–10,000 rows, max 2 MB.</div>
+        </div>
+        <div class="research-params">
+            <div><label class="form-label" for="fastWindow">Fast SMA</label><div class="input-group"><input id="fastWindow" class="form-control" name="fast_window" type="number" min="2" max="499" value="{{ fast_window }}" required><span class="input-group-text">bars</span></div></div>
+            <div><label class="form-label" for="slowWindow">Slow SMA</label><div class="input-group"><input id="slowWindow" class="form-control" name="slow_window" type="number" min="3" max="500" value="{{ slow_window }}" required><span class="input-group-text">bars</span></div></div>
+            <div><label class="form-label" for="costBps">Trading cost</label><div class="input-group"><input id="costBps" class="form-control" name="cost_bps" type="number" min="0" max="100" step="0.5" value="{{ cost_bps }}" required><span class="input-group-text">bps / turnover</span></div></div>
+            <button class="btn btn-accent run-backtest" type="submit"><i class="fas fa-play"></i> Run backtest</button>
+        </div>
+    </form>
+    <div class="execution-note"><i class="fas fa-circle-info"></i><span>Signal from close <em>t</em> is applied to the next bar. Costs are charged when exposure changes. The uploaded file is processed in memory and is not saved.</span></div>
+</section>
+
+{% if result %}
+<section class="results-header"><div><div class="eyebrow">BACKTEST OUTPUT</div><h2>Strategy vs. buy and hold</h2><p>{{ result.start_date }} — {{ result.end_date }} <span>·</span> {{ result.observations }} observations <span>·</span> SMA {{ result.fast_window }} / {{ result.slow_window }}</p></div><span class="panel-badge">HISTORICAL SIMULATION</span></section>
+<section class="result-metrics">
+    <article class="result-card"><span>Strategy return</span><strong class="{% if result.total_return_pct >= 0 %}positive{% else %}negative{% endif %}">{{ "%+.2f"|format(result.total_return_pct) }}%</strong><small>cumulative, after modeled costs</small></article>
+    <article class="result-card"><span>Buy and hold</span><strong class="{% if result.buy_hold_return_pct >= 0 %}positive{% else %}negative{% endif %}">{{ "%+.2f"|format(result.buy_hold_return_pct) }}%</strong><small>same close series, no trading costs</small></article>
+    <article class="result-card"><span>Max drawdown</span><strong class="negative">{{ "%.2f"|format(result.max_drawdown_pct) }}%</strong><small>peak-to-trough strategy equity</small></article>
+    <article class="result-card"><span>Sharpe ratio</span><strong>{{ "%.2f"|format(result.sharpe_ratio) }}</strong><small>annualized, 0% risk-free assumption</small></article>
+</section>
+<section class="result-grid">
+    <article class="panel result-chart-panel"><div class="panel-heading"><div><div class="eyebrow">NORMALIZED EQUITY</div><h2>Growth of $1</h2></div><span class="panel-badge">AFTER COSTS · CLOSE TO CLOSE</span></div><div class="chart-container backtest-chart"><canvas id="backtestChart"></canvas></div></article>
+    <article class="panel result-details"><div class="eyebrow">RISK & EXECUTION</div><h2>Run diagnostics</h2>
+        <div class="diagnostic-row"><span>Annualized return</span><strong>{{ "%+.2f"|format(result.annualized_return_pct) }}%</strong></div>
+        <div class="diagnostic-row"><span>Annualized volatility</span><strong>{{ "%.2f"|format(result.annualized_volatility_pct) }}%</strong></div>
+        <div class="diagnostic-row"><span>Market exposure</span><strong>{{ "%.1f"|format(result.market_exposure_pct) }}%</strong></div>
+        <div class="diagnostic-row"><span>Position entries</span><strong>{{ result.entry_count }}</strong></div>
+        <div class="diagnostic-row"><span>One-way trading cost</span><strong>{{ "%.1f"|format(result.cost_bps) }} bps</strong></div>
+        <div class="diagnostic-footnote">Annualized using 252 observations per year. No dividends, borrow fees, market impact, or taxes are modeled.</div>
+    </article>
+</section>
+{% else %}
+<section class="research-intro-grid">
+    <article class="panel research-method"><div class="eyebrow">MODEL SPECIFICATION</div><h2>What this experiment measures</h2><p>A fast moving average crossing above a slow average sets the portfolio to long. Crossing below moves it to cash. The position changes on the next observation, so the rule does not trade on a close it has not yet seen.</p>
+        <div class="method-steps"><div><span>01</span><p>Upload daily <code>date,close</code> data</p></div><div><span>02</span><p>Choose the two lookback windows</p></div><div><span>03</span><p>Review returns, drawdown and exposure</p></div></div>
+    </article>
+    <article class="panel research-caution"><div class="eyebrow">RESEARCH NOTE</div><h2>Backtests are conditional</h2><p>Results describe only the supplied period and assumptions. They can change with data cleaning, transaction costs, instrument selection and execution timing.</p><div class="caution-list"><span><i class="fas fa-check"></i> Next-bar signal execution</span><span><i class="fas fa-check"></i> Turnover-based cost model</span><span><i class="fas fa-minus"></i> No live orders or market data</span><span><i class="fas fa-minus"></i> No parameter optimization</span></div></article>
+</section>
+{% endif %}
+<div class="dashboard-disclaimer"><i class="fas fa-triangle-exclamation"></i> Educational research tool. This backtest is not investment advice and does not predict future results.</div>
+{% endblock %}
+
+{% block scripts %}
+{% if result %}
+<script>
+const resultSeries = {{ result|tojson }};
+new Chart(document.getElementById('backtestChart'), {
+  type: 'line',
+  data: { labels: resultSeries.dates, datasets: [
+    { label: 'SMA strategy', data: resultSeries.strategy_equity, borderColor: '#24766b', backgroundColor: 'rgba(36,118,107,.10)', borderWidth: 2, pointRadius: 0, tension: .1, fill: true },
+    { label: 'Buy and hold', data: resultSeries.benchmark_equity, borderColor: '#c18143', borderWidth: 1.5, pointRadius: 0, tension: .1, fill: false }
+  ]},
+  options: { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' }, plugins: { legend: { position: 'bottom', labels: { color: '#687a73', usePointStyle: true, boxWidth: 7 } }, tooltip: { callbacks: { label: (context) => `${context.dataset.label}: $${Number(context.raw).toFixed(3)}` } } }, scales: { x: { ticks: { color: '#7c8b83', maxTicksLimit: 8 }, grid: { display: false } }, y: { ticks: { color: '#7c8b83', callback: (value) => `$${Number(value).toFixed(2)}` }, grid: { color: 'rgba(80,100,90,.10)' } } } }
+});
+</script>
+{% endif %}
+{% endblock %}

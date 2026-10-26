@@ -90,13 +90,17 @@ function updatePrices() {
 
 function updatePerformanceChart(days) {
     // Show loading indicator
-    const chartContainer = document.getElementById('performanceChart').parentNode;
+    const chartContainer = document.getElementById('performanceChartWrap');
     chartContainer.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
     
     // Fetch updated performance data
     fetch(`/api/portfolio_performance?days=${days}`)
         .then(response => response.json())
         .then(data => {
+            if (data.values.length < 2) {
+                chartContainer.innerHTML = '<div class="history-empty"><span><i class="fas fa-chart-line"></i></span><strong>History is starting</strong><p>Add a position and return after another day to build a trendline.</p></div>';
+                return;
+            }
             // Recreate the chart with new data
             chartContainer.innerHTML = '<canvas id="performanceChart"></canvas>';
             const ctx = document.getElementById('performanceChart').getContext('2d');
@@ -108,12 +112,14 @@ function updatePerformanceChart(days) {
                     datasets: [{
                         label: 'Portfolio Value ($)',
                         data: data.values,
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        borderColor: '#24766b',
+                        backgroundColor: 'rgba(36, 118, 107, 0.12)',
+                        pointBackgroundColor: '#24766b',
                         pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
+                        pointHoverBackgroundColor: '#dcefe5',
+                        pointHoverBorderColor: '#24766b',
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
@@ -123,13 +129,7 @@ function updatePerformanceChart(days) {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        title: {
-                            display: true,
-                            text: `Portfolio Performance (${days} days)`,
-                            font: {
-                                size: 16
-                            }
-                        },
+                        title: { display: false },
                         tooltip: {
                             mode: 'index',
                             intersect: false,
@@ -139,9 +139,7 @@ function updatePerformanceChart(days) {
                                 }
                             }
                         },
-                        legend: {
-                            position: 'bottom'
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         x: {
@@ -150,12 +148,14 @@ function updatePerformanceChart(days) {
                             }
                         },
                         y: {
-                            beginAtZero: true,
+                            beginAtZero: false,
                             ticks: {
+                                color: '#8791a4',
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString();
+                                return '$' + Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
                                 }
-                            }
+                            },
+                            grid: { color: 'rgba(135,145,164,.10)' }
                         }
                     }
                 }

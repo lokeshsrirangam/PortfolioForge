@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "meridian-portfolio-intelligence"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Flask portfolio analytics workspace for multi-asset holdings and exposure analysis"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",

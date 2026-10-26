@@ -382,7 +382,7 @@ wheels = [
 ]
 
 [[package]]
-name = "repl-nix-workspace"
+name = "meridian-portfolio-intelligence"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

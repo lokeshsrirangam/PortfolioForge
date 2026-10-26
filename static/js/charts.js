@@ -22,6 +22,12 @@ function initPerformanceChart() {
     fetch('/api/portfolio_performance')
         .then(response => response.json())
         .then(data => {
+            if (data.values.length < 2) {
+                const chartCanvas = document.getElementById('performanceChart');
+                const chartWrap = document.getElementById('performanceChartWrap') || chartCanvas.parentElement;
+                chartWrap.innerHTML = '<div class="history-empty"><span><i class="fas fa-chart-line"></i></span><strong>History is starting</strong><p>Add a position and return after another day to build a trendline.</p></div>';
+                return;
+            }
             const ctx = document.getElementById('performanceChart').getContext('2d');
             
             new Chart(ctx, {
@@ -31,12 +37,14 @@ function initPerformanceChart() {
                     datasets: [{
                         label: 'Portfolio Value ($)',
                         data: data.values,
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        borderColor: '#24766b',
+                        backgroundColor: 'rgba(36, 118, 107, 0.12)',
+                        pointBackgroundColor: '#24766b',
                         pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
+                        pointHoverBackgroundColor: '#dcefe5',
+                        pointHoverBorderColor: '#24766b',
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
@@ -46,13 +54,7 @@ function initPerformanceChart() {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        title: {
-                            display: true,
-                            text: 'Portfolio Performance Over Time',
-                            font: {
-                                size: 16
-                            }
-                        },
+                        title: { display: false },
                         tooltip: {
                             mode: 'index',
                             intersect: false,
@@ -62,9 +64,7 @@ function initPerformanceChart() {
                                 }
                             }
                         },
-                        legend: {
-                            position: 'bottom'
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         x: {
@@ -73,12 +73,14 @@ function initPerformanceChart() {
                             }
                         },
                         y: {
-                            beginAtZero: true,
+                            beginAtZero: false,
                             ticks: {
+                                color: '#8791a4',
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString();
+                                    return '$' + Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
                                 }
-                            }
+                            },
+                            grid: { color: 'rgba(135,145,164,.10)' }
                         }
                     }
                 }
@@ -117,24 +119,20 @@ function initAssetAllocationChart() {
                     labels: data.labels,
                     datasets: [{
                         data: data.data,
-                        backgroundColor: colors.slice(0, data.labels.length),
-                        borderColor: 'rgba(255, 255, 255, 0.5)',
-                        borderWidth: 1
+                        backgroundColor: ['#24766b','#d28a50','#5798a5','#9a7e47','#bd6555','#7891a6'].slice(0, data.labels.length),
+                        borderColor: '#fff',
+                        borderWidth: 3,
+                        hoverOffset: 5
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        title: {
-                            display: true,
-                            text: 'Asset Allocation',
-                            font: {
-                                size: 16
-                            }
-                        },
+                        title: { display: false },
                         legend: {
-                            position: 'right',
+                            display: false,
+                            position: 'bottom',
                             labels: {
                                 boxWidth: 15
                             }

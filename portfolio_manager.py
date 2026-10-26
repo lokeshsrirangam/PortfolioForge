@@ -45,6 +45,12 @@ class PortfolioManager:
         # Convert to percentages
         for sector in sector_allocation:
             sector_allocation[sector] = (sector_allocation[sector] / total_value) * 100 if total_value > 0 else 0
+
+        # Position concentration is a transparent snapshot metric. HHI is reported
+        # on the conventional 0–10,000 scale and is not a forward-looking risk model.
+        position_weights = [security.current_value / total_value for security in securities] if total_value > 0 else []
+        concentration_hhi = sum(weight * weight for weight in position_weights) * 10_000
+        largest_position_pct = max(position_weights, default=0) * 100
         
         return {
             'total_value': total_value,
@@ -53,7 +59,9 @@ class PortfolioManager:
             'total_gain_loss_pct': total_gain_loss_pct,
             'securities_count': len(securities),
             'asset_allocation': asset_allocation,
-            'sector_allocation': sector_allocation
+            'sector_allocation': sector_allocation,
+            'largest_position_pct': largest_position_pct,
+            'concentration_hhi': concentration_hhi
         }
     
     @staticmethod
@@ -74,29 +82,17 @@ class PortfolioManager:
         
         if df.empty:
             return {
-                'volatility': 0,
-                'sharpe_ratio': 0,
+                'position_return_dispersion': 0,
                 'top_performers': [],
                 'bottom_performers': []
             }
         
-        # Calculate portfolio volatility (simplified)
-        # In a real application, this would use historical price data
+        # Cross-sectional dispersion is computed from lifetime holding returns.
+        # It is not time-series volatility and cannot support a Sharpe ratio.
         if len(df) > 1:
-            # Using gain_loss_pct as a proxy for volatility
-            volatility = df['gain_loss_pct'].std()
+            position_return_dispersion = df['gain_loss_pct'].std()
         else:
-            volatility = 0
-        
-        # Calculate Sharpe ratio (simplified)
-        # Using average gain_loss_pct as a proxy for return
-        # Assuming risk-free rate of 2%
-        risk_free_rate = 2.0
-        if volatility > 0:
-            avg_return = df['gain_loss_pct'].mean()
-            sharpe_ratio = (avg_return - risk_free_rate) / volatility
-        else:
-            sharpe_ratio = 0
+            position_return_dispersion = 0
         
         # Get top and bottom performers
         df_sorted = df.sort_values(by='gain_loss_pct', ascending=False)
@@ -104,8 +100,7 @@ class PortfolioManager:
         bottom_performers = df_sorted.tail(3).to_dict('records')
         
         return {
-            'volatility': volatility,
-            'sharpe_ratio': sharpe_ratio,
+            'position_return_dispersion': position_return_dispersion,
             'top_performers': top_performers,
             'bottom_performers': bottom_performers
         }
@@ -189,6 +184,8 @@ class PortfolioManager:
             date = datetime.utcnow().date()
         
         securities = Security.query.all()
+        if not securities:
+            return None
         total_value = sum(security.current_value for security in securities)
         
         # Check if a snapshot already exists for this date

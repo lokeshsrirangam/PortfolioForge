@@ -1,227 +1,113 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <div class="btn-group me-2">
-            <a href="{{ url_for('reports') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-file-export me-1"></i> Generate Report
-            </a>
-        </div>
-        <a href="{{ url_for('add_security') }}" class="btn btn-sm btn-primary">
-            <i class="fas fa-plus me-1"></i> Add Security
-        </a>
+<div class="page-heading">
+    <div>
+        <div class="eyebrow"><span class="status-dot"></span> QUANTITATIVE RESEARCH <span class="eyebrow-divider">/</span> RESEARCH DESK</div>
+        <h1>Quant research desk</h1>
+        <p class="page-subtitle">Explore systematic strategies, portfolio exposures and risk signals in one workspace.</p>
+    </div>
+    <div class="heading-actions">
+        <a href="{{ url_for('research_lab') }}" class="btn btn-quiet"><i class="fas fa-flask"></i> Strategy lab</a>
+        <a href="{{ url_for('add_security') }}" class="btn btn-accent"><i class="fas fa-plus"></i> Add position</a>
     </div>
 </div>
 
-<!-- Portfolio Summary Cards -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow dashboard-card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-3">
-                        <i class="fas fa-wallet fa-3x text-primary"></i>
-                    </div>
-                    <div class="col-9 text-end">
-                        <h6 class="text-uppercase text-muted mb-0">Portfolio Value</h6>
-                        <span class="value">${{ "%.2f"|format(summary.total_value) }}</span>
-                    </div>
-                </div>
-            </div>
+<section class="hero-panel">
+    <div class="hero-main">
+        <div class="eyebrow">TOTAL PORTFOLIO VALUE <span class="live-label"><i class="fas fa-circle"></i> TRACKED</span></div>
+        <div class="hero-value">${{ "{:,.2f}".format(summary.total_value) }}</div>
+        <div class="hero-change {% if summary.total_gain_loss >= 0 %}positive{% else %}negative{% endif %}">
+            <i class="fas {% if summary.total_gain_loss >= 0 %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
+            ${{ "{:,.2f}".format(summary.total_gain_loss) }} <span>({{ "%.2f"|format(summary.total_gain_loss_pct) }}%) unrealized</span>
         </div>
+        <div class="hero-footnote">Based on your recorded cost basis and latest entered prices</div>
     </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow dashboard-card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-3">
-                        <i class="fas fa-money-bill-trend-up fa-3x {% if summary.total_gain_loss >= 0 %}text-success{% else %}text-danger{% endif %}"></i>
-                    </div>
-                    <div class="col-9 text-end">
-                        <h6 class="text-uppercase text-muted mb-0">Total Gain/Loss</h6>
-                        <span class="value {% if summary.total_gain_loss >= 0 %}positive{% else %}negative{% endif %}">
-                            ${{ "%.2f"|format(summary.total_gain_loss) }} 
-                            ({{ "%.2f"|format(summary.total_gain_loss_pct) }}%)
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="hero-side">
+        <div class="hero-side-label">INVESTED CAPITAL</div>
+        <div class="hero-side-value">${{ "{:,.2f}".format(summary.total_cost) }}</div>
+        <div class="hero-divider"></div>
+        <div class="hero-side-label">POSITIONS TRACKED</div>
+        <div class="hero-side-value">{{ summary.securities_count }} <span>securities</span></div>
     </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow dashboard-card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-3">
-                        <i class="fas fa-chart-bar fa-3x text-info"></i>
-                    </div>
-                    <div class="col-9 text-end">
-                        <h6 class="text-uppercase text-muted mb-0">Asset Classes</h6>
-                        <span class="value">{{ summary.asset_allocation|length }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow dashboard-card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-3">
-                        <i class="fas fa-chart-line fa-3x text-warning"></i>
-                    </div>
-                    <div class="col-9 text-end">
-                        <h6 class="text-uppercase text-muted mb-0">Securities</h6>
-                        <span class="value">{{ summary.securities_count }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+</section>
 
-<!-- Portfolio Performance Chart -->
-<div class="row mb-4">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Portfolio Performance</h5>
-                <select id="periodSelector" class="form-select form-select-sm w-auto">
-                    <option value="30">Last 30 Days</option>
-                    <option value="90">Last 90 Days</option>
-                    <option value="180">Last 6 Months</option>
-                    <option value="365">Last Year</option>
-                </select>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="performanceChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="card border-0 shadow h-100">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="mb-0">Asset Allocation</h5>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="assetAllocationChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<section class="metric-grid" aria-label="Portfolio indicators">
+    <article class="metric-card">
+        <div class="metric-top"><span>Largest position</span><span class="metric-icon icon-violet"><i class="fas fa-crosshairs"></i></span></div>
+        <div class="metric-value">{{ "%.1f"|format(summary.largest_position_pct) }}<small>%</small></div>
+        <div class="metric-caption">of current portfolio value</div>
+        <div class="metric-track"><span style="width: {{ [summary.largest_position_pct, 100]|min }}%"></span></div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-top"><span>Concentration index</span><span class="metric-icon icon-cyan"><i class="fas fa-layer-group"></i></span></div>
+        <div class="metric-value">{{ "%.0f"|format(summary.concentration_hhi) }}<small> / 10k</small></div>
+        <div class="metric-caption">HHI across {{ summary.securities_count }} holdings</div>
+        <div class="metric-note">Lower values generally indicate a more distributed portfolio.</div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-top"><span>Risk profile</span><span class="metric-icon icon-amber"><i class="fas fa-shield-halved"></i></span></div>
+        <div class="metric-value">{{ "%.1f"|format(risk.portfolio_risk_score) }}<small><span class="metric-out-of"> / 7</span></small></div>
+        <div class="metric-caption">{{ risk.risk_level }} heuristic score</div>
+        <div class="metric-note">Weighted by asset-class assumptions.</div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-top"><span>Return dispersion</span><span class="metric-icon icon-green"><i class="fas fa-wave-square"></i></span></div>
+        <div class="metric-value">{{ "%.1f"|format(metrics.position_return_dispersion) }}<small>%</small></div>
+        <div class="metric-caption">spread across holding returns</div>
+        <div class="metric-note">Cross-position measure; not time-series volatility.</div>
+    </article>
+</section>
 
-<!-- Portfolio Metrics and Recent Securities -->
-<div class="row mb-4">
-    <div class="col-lg-6">
-        <div class="card border-0 shadow">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="mb-0">Portfolio Metrics</h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <h6 class="text-muted">Portfolio Risk Score</h6>
-                        <div class="d-flex align-items-center">
-                            <div class="badge risk-{{ risk.risk_level|replace(' ', '-') }} me-2">
-                                {{ risk.portfolio_risk_score }}
-                            </div>
-                            <span>{{ risk.risk_level }}</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <h6 class="text-muted">Volatility</h6>
-                        <div>{{ "%.2f"|format(metrics.volatility) }}%</div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                        <h6 class="text-muted">Sharpe Ratio</h6>
-                        <div>{{ "%.2f"|format(metrics.sharpe_ratio) }}</div>
-                    </div>
-                    <div class="col-6">
-                        <h6 class="text-muted">Asset Classes</h6>
-                        <div>
-                            {% for asset_class, percentage in summary.asset_allocation.items() %}
-                                <span class="badge asset-{{ asset_class|replace(' ', '-') }} mb-1">{{ asset_class }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-12">
-                        <h6 class="text-muted">Top Performers</h6>
-                        <ul class="list-group list-group-flush">
-                            {% for security in metrics.top_performers %}
-                                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between align-items-center">
-                                    <span>{{ security.ticker }}</span>
-                                    <span class="badge rounded-pill bg-success">{{ "%.2f"|format(security.gain_loss_pct) }}%</span>
-                                </li>
-                            {% else %}
-                                <li class="list-group-item bg-transparent px-0">No securities data available</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
+<section class="dashboard-grid">
+    <article class="panel performance-panel">
+        <div class="panel-heading">
+            <div><div class="eyebrow">PORTFOLIO HISTORY</div><h2>Value over time</h2></div>
+            <select id="periodSelector" class="form-select form-select-sm period-select" aria-label="History period">
+                <option value="30">30 days</option><option value="90">90 days</option><option value="180">6 months</option><option value="365">1 year</option>
+            </select>
         </div>
-    </div>
-    
-    <div class="col-lg-6">
-        <div class="card border-0 shadow">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Securities</h5>
-                <a href="{{ url_for('portfolio') }}" class="btn btn-sm btn-outline-secondary">View All</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Ticker</th>
-                                <th>Asset Class</th>
-                                <th>Value</th>
-                                <th>Gain/Loss</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for security in latest_securities %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ security.ticker }}</strong><br>
-                                        <small class="text-muted">{{ security.name }}</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge asset-{{ security.asset_class|replace(' ', '-') }}">{{ security.asset_class }}</span>
-                                    </td>
-                                    <td>${{ "%.2f"|format(security.current_value) }}</td>
-                                    <td class="{% if security.gain_loss >= 0 %}positive{% else %}negative{% endif %}">
-                                        ${{ "%.2f"|format(security.gain_loss) }} 
-                                        ({{ "%.2f"|format(security.gain_loss_percentage) }}%)
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="4" class="text-center">No securities yet. <a href="{{ url_for('add_security') }}">Add one?</a></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="performanceChartWrap" class="chart-container performance-chart"><canvas id="performanceChart"></canvas></div>
+        <div class="panel-footnote"><i class="fas fa-circle-info"></i> History reflects daily snapshots collected by this app; it is not backfilled market history.</div>
+    </article>
+    <article class="panel allocation-panel">
+        <div class="panel-heading"><div><div class="eyebrow">DIVERSIFICATION</div><h2>Asset allocation</h2></div><a class="text-link" href="{{ url_for('analysis') }}">Explore <i class="fas fa-arrow-right"></i></a></div>
+        {% if summary.asset_allocation %}
+        <div class="allocation-chart-wrap"><canvas id="assetAllocationChart"></canvas></div>
+        <div class="allocation-legend">
+            {% for asset_class, percentage in summary.asset_allocation.items() %}
+            <div class="allocation-row"><span class="allocation-dot dot-{{ loop.index0 % 5 }}"></span><span class="allocation-name">{{ asset_class }}</span><span class="allocation-percent">{{ "%.1f"|format(percentage) }}%</span></div>
+            {% endfor %}
         </div>
-    </div>
-</div>
+        {% else %}<div class="empty-state"><span><i class="fas fa-chart-pie"></i></span><strong>No positions yet</strong><p>Add an investment to see your allocation.</p><a href="{{ url_for('add_security') }}" class="btn btn-accent btn-sm">Add first position</a></div>{% endif %}
+    </article>
+</section>
+
+<section class="bottom-grid">
+    <article class="panel exposure-panel">
+        <div class="panel-heading"><div><div class="eyebrow">PORTFOLIO BREAKDOWN</div><h2>Sector exposure</h2></div><a class="text-link" href="{{ url_for('analysis') }}">Full analysis <i class="fas fa-arrow-right"></i></a></div>
+        {% if summary.sector_allocation %}
+            {% for sector, percentage in summary.sector_allocation|dictsort(by='value', reverse=true) %}
+            <div class="exposure-item"><div class="exposure-label"><span>{{ sector }}</span><strong>{{ "%.1f"|format(percentage) }}%</strong></div><div class="exposure-track"><span style="width: {{ percentage }}%"></span></div></div>
+            {% endfor %}
+        {% else %}<div class="empty-inline"><i class="fas fa-circle-info"></i> Add sector details to your positions to see exposure.</div>{% endif %}
+    </article>
+    <article class="panel movers-panel">
+        <div class="panel-heading"><div><div class="eyebrow">RELATIVE PERFORMANCE</div><h2>Position movers</h2></div><span class="panel-badge">SINCE PURCHASE</span></div>
+        {% for security in metrics.top_performers[:3] %}
+        <div class="mover-row"><div class="mover-symbol">{{ security.ticker[:2] }}</div><div class="mover-info"><strong>{{ security.ticker }}</strong><small>{{ security.asset_class }}</small></div><div class="mover-return {% if security.gain_loss_pct >= 0 %}positive{% else %}negative{% endif %}">{% if security.gain_loss_pct >= 0 %}+{% endif %}{{ "%.2f"|format(security.gain_loss_pct) }}%</div></div>
+        {% else %}<div class="empty-inline">Position performance will appear here.</div>{% endfor %}
+        {% if latest_securities %}<a href="{{ url_for('portfolio') }}" class="all-positions-link">View all {{ summary.securities_count }} positions <i class="fas fa-arrow-right"></i></a>{% endif %}
+    </article>
+</section>
+
+<section class="panel positions-panel">
+    <div class="panel-heading"><div><div class="eyebrow">HOLDINGS</div><h2>Recent positions</h2></div><a href="{{ url_for('portfolio') }}" class="text-link">View portfolio <i class="fas fa-arrow-right"></i></a></div>
+    <div class="table-responsive"><table class="table positions-table align-middle mb-0"><thead><tr><th>ASSET</th><th>CLASS</th><th>QUANTITY</th><th>MARKET VALUE</th><th>UNREALIZED P/L</th><th></th></tr></thead><tbody>
+    {% for security in latest_securities %}<tr><td><div class="asset-cell"><span class="asset-avatar">{{ security.ticker[:2] }}</span><span><strong>{{ security.ticker }}</strong><small>{{ security.name }}</small></span></div></td><td><span class="asset-pill">{{ security.asset_class }}</span></td><td>{{ "{:,.4g}".format(security.quantity) }}</td><td>${{ "{:,.2f}".format(security.current_value) }}</td><td class="{% if security.gain_loss >= 0 %}positive{% else %}negative{% endif %}">{% if security.gain_loss >= 0 %}+{% endif %}${{ "{:,.2f}".format(security.gain_loss) }} <small>({{ "%.2f"|format(security.gain_loss_percentage) }}%)</small></td><td><a class="row-action" href="{{ url_for('edit_security', security_id=security.id) }}" aria-label="Edit {{ security.ticker }}"><i class="fas fa-arrow-up-right-from-square"></i></a></td></tr>
+    {% else %}<tr><td colspan="6"><div class="empty-table">No holdings yet. <a href="{{ url_for('add_security') }}">Add your first position</a> to start tracking.</div></td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+<div class="dashboard-disclaimer"><i class="fas fa-circle-info"></i> Enter prices in one reporting currency. Quotes are manual; analytics use recorded positions and are for research, not investment advice.</div>
 {% endblock %}

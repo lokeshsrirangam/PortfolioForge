@@ -1,70 +1,47 @@
-# PortfolioForge – Multi-Asset Portfolio Analytics Platform
+# PortfolioForge
 
-## Overview
+### Multi-Asset Portfolio Analytics Platform
 
-PortfolioForge is a web-based portfolio analytics platform designed to help investors analyze and manage diversified investment portfolios across multiple asset classes. The application provides insights into portfolio allocation, asset performance, sector exposure, and diversification through an interactive dashboard.
+PortfolioForge is a small investment workspace for keeping track of a portfolio and exploring how a simple trading rule would have behaved on historical prices. I built it to bring position tracking and practical quant research into one place.
 
-Built with Python, Flask, and Plotly, the platform transforms portfolio data into meaningful visualizations and actionable investment insights.
+## What you can do
 
-## Features
+- Add and edit positions across asset classes, and record purchase details and current prices.
+- Review portfolio value, unrealized gains and losses, asset allocation, sector exposure, and concentration.
+- Import or export holdings with CSV files.
+- View recorded portfolio snapshots and generate a portfolio report.
+- In the Strategy Lab, upload daily closing prices and compare a long-only moving-average strategy with buy-and-hold.
+- Adjust the moving-average windows and transaction-cost assumption, then review returns, drawdown, volatility, Sharpe ratio, and market exposure.
 
-### Portfolio Analytics
+## Run it on your computer
 
-* Analyze portfolio allocation across asset classes
-* Track sector-wise distribution and exposure
-* Monitor portfolio composition through interactive visualizations
+You’ll need Python 3.11 or newer.
 
-### Performance Monitoring
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+python main.py
+```
 
-* Identify top-performing and underperforming assets
-* Evaluate portfolio concentration and diversification
-* Compare asset contributions to overall portfolio returns
+Then open <http://127.0.0.1:5001> in your browser. The app uses SQLite by default and stores its database at `instance/portfolio.db`.
 
-### Diversification Insights
+To use a different database, set `DATABASE_URL`. For a deployment, also set `SESSION_SECRET` to a private random value; don’t use the development default.
 
-* Examine sector and asset-class balance
-* Discover opportunities to improve portfolio diversification
-* Analyze portfolio structure for risk management
+## Price data for the Strategy Lab
 
-### Rebalancing Recommendations
+Upload a CSV with two columns: `date` and `close`. Use daily observations with unique dates and positive closing prices. The file is processed in memory and is not saved by the app.
 
-* Detect allocation imbalances
-* Generate portfolio rebalancing suggestions
-* Support data-driven portfolio management decisions
+The backtest is intentionally transparent: a signal calculated from one closing price is applied on the next bar, and estimated costs are charged when the position changes. It is a basic research example, not a live trading system. There is no live price feed, broker connection, short selling, leverage, or parameter optimization.
 
-## Technology Stack
+## A note on the numbers
 
-* Python
-* Flask
-* Pandas
-* NumPy
-* Plotly
-* Bootstrap 5
+Portfolio prices are entered by the user; the app does not fetch quotes or convert currencies. Positions must use the same reporting currency for portfolio totals. The concentration index is a measure of how portfolio value is distributed across holdings. The asset-class risk score is a rough heuristic, not a forecast of loss or volatility. Snapshot history starts when the app begins recording it, so it is not historical market data.
 
-## Key Highlights
+Backtest results depend on the uploaded data, the chosen period, and the assumptions. Past results do not predict future performance. PortfolioForge is for tracking and research, not investment advice.
 
-* Multi-Asset Portfolio Tracking
-* Interactive Financial Dashboards
-* Asset Allocation Analysis
-* Sector Exposure Visualization
-* Performance Analytics
-* Portfolio Rebalancing Framework
-* Financial Data Processing & Visualization
+## Built with
 
-## Project Objectives
+Python, Flask, Flask-SQLAlchemy, SQLite, Pandas, NumPy, Bootstrap, and Chart.js.
 
-The primary goal of this project is to develop a scalable portfolio management framework capable of organizing, analyzing, and visualizing investment data efficiently. The platform demonstrates practical applications of financial analytics, portfolio monitoring, and investment decision support using modern Python-based technologies.
-
-## Future Enhancements
-
-* Real-Time Market Data Integration
-* Portfolio Optimization Models
-* Risk Analytics (Sharpe Ratio, Beta, Alpha)
-* Historical Performance Tracking
-* Automated Portfolio Rebalancing
-* User Authentication & Cloud Deployment
-
----
-
-**PortfolioForge** demonstrates the integration of financial analytics, portfolio management principles, and data visualization techniques to support informed investment decisions within a modern web-based environment.
-
+This project grew from an educational portfolio-tracking starter. If you redistribute or publish it, follow the starter project’s license and attribution terms.

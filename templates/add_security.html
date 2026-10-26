@@ -121,10 +121,10 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="currency" class="form-label">Currency</label>
+                                <label for="currency" class="form-label">Reporting currency</label>
                                 <input type="text" class="form-control" id="currency" name="currency" 
                                        placeholder="e.g., USD" value="{{ security.currency if edit else 'USD' }}">
-                                <div class="form-text">Currency code (default: USD)</div>
+                                <div class="form-text">Use the same currency for every position. FX conversion is not applied.</div>
                             </div>
                         </div>
                     </div>

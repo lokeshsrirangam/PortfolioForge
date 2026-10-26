@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <div class="eyebrow"><span class="status-dot"></span> PORTFOLIO TOOLS <span class="eyebrow-divider">/</span> DATA IMPORT</div>
+        <h1>Import positions</h1>
+        <p class="page-subtitle">Bring an existing holdings list into Meridian with a CSV file.</p>
+    </div>
+    <div class="heading-actions"><a href="{{ url_for('portfolio') }}" class="btn btn-quiet"><i class="fas fa-arrow-left"></i> Back to portfolio</a></div>
+</div>
+
+<div class="import-layout">
+    <section class="panel import-panel">
+        <div class="panel-heading"><div><div class="eyebrow">UPLOAD</div><h2>Choose your CSV</h2></div><span class="import-step">01</span></div>
+        <form method="post" enctype="multipart/form-data" class="import-form">
+            <label for="portfolioCsv" class="upload-zone">
+                <span class="upload-icon"><i class="fas fa-file-csv"></i></span>
+                <strong>Select a CSV file</strong>
+                <span>Maximum 2 MB · up to 500 positions</span>
+                <input id="portfolioCsv" name="file" type="file" accept=".csv,text/csv" required>
+            </label>
+            <div class="import-actions"><button type="submit" class="btn btn-accent"><i class="fas fa-arrow-right-to-bracket"></i> Validate and import</button><a class="text-link" href="{{ url_for('download_import_template') }}">Download blank template <i class="fas fa-download"></i></a></div>
+        </form>
+        <div class="import-local-note"><i class="fas fa-lock"></i><span>Your file is processed by this local app and added as holdings plus opening buy transactions. It is not sent to a market-data provider.</span></div>
+    </section>
+    <aside class="panel import-guide">
+        <div class="eyebrow">CSV FORMAT</div><h2>Required columns</h2>
+        <p>Use these exact column names. Dates must use <code>YYYY-MM-DD</code>. Price fields must all use the same reporting currency.</p>
+        <div class="column-chips"><code>ticker</code><code>name</code><code>asset_class</code><code>purchase_price</code><code>current_price</code><code>quantity</code><code>purchase_date</code></div>
+        <div class="guide-divider"></div>
+        <h3>Optional fields</h3><p><code>sector</code>, <code>country</code>, <code>currency</code> (defaults to USD), and <code>notes</code>.</p>
+        <div class="guide-tip"><i class="fas fa-circle-info"></i><span>Import validates every row first. If it finds an error, it saves nothing and points you to the problem row.</span></div>
+    </aside>
+</div>
+{% endblock %}
