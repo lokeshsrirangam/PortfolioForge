@@ -37,3 +37,6 @@ with app.app_context():
     import models  # noqa: F401
 
     db.create_all()
+
+# Register routes when Vercel imports this module as the WSGI entry point.
+import routes  # noqa: F401
